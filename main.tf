@@ -1,0 +1,141 @@
+# Resource block to create a VM in Proxmox
+resource "proxmox_virtual_environment_vm" "traditional" {
+  name        = "traditional-webserver"
+  node_name   = "NLDW4"
+
+  # Clone the VM from a preconfigured Ubuntu cloud-init template
+  clone {
+    vm_id = 9000
+    full  = true  # Full clone — independent copy, not linked
+  }
+
+  cpu {
+    cores     = 2
+    type      = "x86-64-v2-AES"
+  }
+
+  memory {
+    dedicated  = 4096
+    floating   = 4096
+  }
+
+  network_device {
+    bridge    = "vmbr1"
+    model     = "virtio"
+    vlan_id   = var.vlan
+    firewall  = false
+  }
+
+  disk {
+    datastore_id = "local-lvm"
+    interface    = "scsi0"
+    size         =  50
+    discard      = "on"
+    ssd          = true
+  }
+
+  # Use cloud-init block for user creation, SSH access and network settings.
+  initialization{
+  user_account{
+    username    = "${var.ubuntu_user}"
+    password    = "${var.ubuntu_pass}"
+    keys        = [
+                  file("/home/ara/.ssh/id_ed25519.pub")
+    ]
+  }
+
+  ip_config {
+    ipv4 {
+      address   = "dhcp"
+    }
+  }
+
+}
+  # Wait for the guest agent to report an IPv4 address before proceeding.
+  agent {
+    enabled = true
+    wait_for_ip {
+      ipv4  = true
+    }
+  }
+
+}
+
+resource "proxmox_virtual_environment_vm" "minikube" {
+  name        = "minikube-webserver"
+  node_name   = "NLDW4"
+
+  clone {
+    vm_id = 9000
+    full  = true  
+  }
+
+  cpu {
+    cores     = 2
+    type      = "x86-64-v2-AES"
+  }
+
+  memory {
+    dedicated  = 4096
+    floating   = 4096
+  }
+
+  network_device {
+    bridge    = "vmbr1"
+    model     = "virtio"
+    vlan_id   = var.vlan
+    firewall  = false
+  }
+
+  disk {
+    datastore_id = "local-lvm"
+    interface    = "scsi0"
+    size         =  50
+    discard      = "on"
+    ssd          = true
+  }
+
+  initialization{
+  user_account{
+    username    = "${var.ubuntu_user}"
+    password    = "${var.ubuntu_pass}"
+    keys        = [
+                  file("/home/ara/.ssh/id_ed25519.pub")
+    ]
+  }
+
+  ip_config {
+    ipv4 {
+      address   = "dhcp"
+    }
+  }
+
+}
+  
+  agent {
+    enabled = true
+    wait_for_ip {
+      ipv4  = true
+    }
+  }
+
+}
+
+# Generate an Ansible inventory file containing the provisioned VM connection details.
+resource "local_file" "ansible_inventory" {
+
+  filename = "${path.module}/inventory.ini"
+
+  content =  <<-EOT
+
+    [traditional]
+    traditional-webserver-${local.traditional_vmid} ansible_host=${local.traditional_ip}
+
+    [minikube]
+    minikube-webserver-${local.minikube_vmid} ansible_host=${local.minikube_ip}
+
+    [all:vars]
+    ansible_user=${var.ubuntu_user}
+
+EOT 
+}
