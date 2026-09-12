@@ -10,13 +10,13 @@ resource "proxmox_virtual_environment_vm" "traditional" {
   }
 
   cpu {
-    cores     = 2
+    cores     = 6
     type      = "x86-64-v2-AES"
   }
 
   memory {
-    dedicated  = 4096
-    floating   = 4096
+    dedicated  = 12288
+    floating   = 12288
   }
 
   network_device {
@@ -71,13 +71,13 @@ resource "proxmox_virtual_environment_vm" "minikube" {
   }
 
   cpu {
-    cores     = 2
+    cores     = 6
     type      = "x86-64-v2-AES"
   }
 
   memory {
-    dedicated  = 4096
-    floating   = 4096
+    dedicated  = 12288
+    floating   = 12288
   }
 
   network_device {
@@ -90,7 +90,7 @@ resource "proxmox_virtual_environment_vm" "minikube" {
   disk {
     datastore_id = "local-lvm"
     interface    = "scsi0"
-    size         =  50
+    size         =  75
     discard      = "on"
     ssd          = true
   }

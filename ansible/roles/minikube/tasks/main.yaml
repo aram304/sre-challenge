@@ -1,0 +1,130 @@
+---
+- name: Install Docker
+  ansible.builtin.package:
+    name: docker.io
+    state: present
+
+- name: Install minikube
+  ansible.builtin.get_url:
+    url: "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
+    dest: /usr/local/bin/minikube
+    mode: '0755'
+
+- name: Set default driver to Docker
+  ansible.builtin.command:
+    cmd: minikube config set driver docker
+  changed_when: true
+
+- name: Ensure Docker group exists
+  ansible.builtin.group:
+    name: docker
+    state: present
+
+- name: Add Ansible user to Docker group
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: true
+
+- name: Reset SSH connection to apply group membership
+  ansible.builtin.meta: reset_connection
+
+- name: Create application directory
+  ansible.builtin.file:
+    path: /opt/sre-challenge/app
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy application files
+  ansible.builtin.copy:
+    src: app/
+    dest: /opt/sre-challenge/app
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Start Minikube cluster
+  ansible.builtin.command:
+    cmd: >-
+      minikube start
+      --cpus=4
+      --memory=8192
+      --disk-size=20g
+      --driver=docker
+      --addons=ingress,metrics-server,dashboard
+  register: start_result
+  changed_when: "'Starting' in start_result.stdout"
+  become: false
+
+- name: check minikube status
+  ansible.builtin.command:
+    cmd: minikube status
+  register: minikube_status
+  changed_when: false
+  become: false
+
+
+- name: Copy dockerfile
+  ansible.builtin.copy:
+    src: docker/dockerfile
+    dest: /opt/sre-challenge/Dockerfile
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+  become: true
+
+
+- name: Build SRE challenge Docker image
+  ansible.builtin.command:
+    cmd: docker build -t sre-challenge:1.0 .
+    chdir: /opt/sre-challenge
+  become: false
+  register: docker_build
+
+
+- name: Load SRE challenge image into Minikube
+  ansible.builtin.command:
+    cmd: minikube image load sre-challenge:1.0
+  become: false
+  register: minikube_image_load
+
+
+- name: Verify SRE challenge image in Minikube
+  ansible.builtin.command:
+    cmd: minikube image ls
+  become: false
+  register: minikube_images
+  changed_when: false
+
+
+- name: Show Minikube images
+  ansible.builtin.debug:
+    msg: "{{ minikube_images.stdout_lines }}"
+
+
+- name: Show status of Minikube
+  ansible.builtin.debug:
+    msg: "{{ minikube_status.stdout_lines }}"
+
+- name: copy kubernetes manifests
+  ansible.builtin.copy:
+    src: kubernetes/
+    dest: /opt/sre-challenge/kubernetes/
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0644'
+
+- name : Apply Kubernetes manifests
+  ansible.builtin.command:
+    cmd: minikube kubectl -- apply -f /opt/sre-challenge/kubernetes/
+  become: false
+  register: kubectl_apply
+
+- name: Show kubectl apply output
+  ansible.builtin.debug:
+    msg: "{{ kubectl_apply.stdout_lines }}"
+
+
+

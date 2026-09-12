@@ -18,11 +18,29 @@
         upgrade: dist
         force: yes
 
-- name: Install and configure SQLite
+- name: install SQLlite
+  hosts: all
+  become: true
+  gather_facts: false
+
+  roles:
+    - sqlite        
+
+- name: Configure webapp
   hosts: traditional
   become: true
   gather_facts: false
 
   roles:
-    - sqlite
-    - trad-webapp
+    - traditional-webapp
+
+- name: Configure minikube
+  hosts: minikube
+  become: true
+  gather_facts: false
+
+  roles:
+    - minikube
+
+
+  
