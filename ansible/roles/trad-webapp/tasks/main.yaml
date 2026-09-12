@@ -1,0 +1,53 @@
+---
+- name: Install Python venv
+  ansible.builtin.apt:
+    name: python3-venv
+    state: present
+    update_cache: true
+
+- name: Create Python virtual environment
+  ansible.builtin.command:
+    cmd: python3 -m venv /opt/sre-challenge/venv
+    creates: /opt/sre-challenge/venv/bin/python
+
+- name: Install Python requirements
+  ansible.builtin.pip:
+    requirements: /opt/sre-challenge/requirements.txt
+    virtualenv: /opt/sre-challenge/venv
+
+- name: Create application directory
+  ansible.builtin.file:
+    path: /opt/sre-challenge
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy application files
+  ansible.builtin.copy:
+    src: app/
+    dest: /opt/sre-challenge/
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart sre-challenge service
+
+- name: Make application run by systemd service
+  ansible.builtin.copy:
+    src: sre-challenge.service
+    dest: /etc/systemd/system/sre-challenge.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart sre-challenge service
+
+- name: Enable and start the application service
+  ansible.builtin.systemd:
+    name: sre-challenge
+    state: started
+    enabled: true
+    daemon_reload: yes
+
+
+
+  

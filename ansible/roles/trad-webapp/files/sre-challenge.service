@@ -1,0 +1,10 @@
+[Unit]
+Description=sre-challenge-app
+After=network.target
+
+[Service]
+ExecStart=/opt/sre-challenge/venv/bin/python /opt/sre-challenge/application.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

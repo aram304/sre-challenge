@@ -34,7 +34,7 @@ resource "proxmox_virtual_environment_vm" "traditional" {
     ssd          = true
   }
 
-  # Use cloud-init block for user creation, SSH access and network settings.
+  # Use cloud-init for user creation, SSH access and network settings.
   initialization{
   user_account{
     username    = "${var.ubuntu_user}"
@@ -124,10 +124,9 @@ resource "proxmox_virtual_environment_vm" "minikube" {
 # Generate an Ansible inventory file containing the provisioned VM connection details.
 resource "local_file" "ansible_inventory" {
 
-  filename = "${path.module}/inventory.ini"
+  filename = "${path.module}/../ansible/inventory.ini"
 
   content =  <<-EOT
-
     [traditional]
     traditional-webserver-${local.traditional_vmid} ansible_host=${local.traditional_ip}
 
@@ -136,6 +135,5 @@ resource "local_file" "ansible_inventory" {
 
     [all:vars]
     ansible_user=${var.ubuntu_user}
-
 EOT 
 }

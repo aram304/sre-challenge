@@ -1,0 +1,5 @@
+---
+- name: restart sre-challenge service
+  ansible.builtin.systemd:
+    name: sre-challenge
+    state: restarted

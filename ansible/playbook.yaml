@@ -1,0 +1,28 @@
+---
+- name: Update and upgrade all packages on all hosts
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+
+    - name: update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+        name: "*"
+        state: latest
+
+    - name: upgrade all packages
+      ansible.builtin.apt:
+        upgrade: dist
+        force: yes
+
+- name: Install and configure SQLite
+  hosts: traditional
+  become: true
+  gather_facts: false
+
+  roles:
+    - sqlite
+    - trad-webapp

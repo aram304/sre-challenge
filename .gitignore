@@ -1,4 +1,4 @@
 *.tfvars
 inventory.ini
 .terraform*
-terraform*
+terraform.*
