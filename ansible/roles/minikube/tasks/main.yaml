@@ -112,7 +112,7 @@
 
 - name: Apply Kubernetes manifests
   ansible.builtin.command:
-    cmd: kubectl apply -f /opt/sre-challenge/kubernetes/
+    cmd: minikube kubectl -- apply -f /opt/sre-challenge/kubernetes/
   become: false
   changed_when: false
 
