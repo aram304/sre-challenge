@@ -7,9 +7,7 @@ on:
 jobs:
   build-en-deploy:
     runs-on: self-hosted
-
-
-
+    
     env:
       TF_VAR_api_proxmox: ${{ secrets.proxmox_api }}
       TF_VAR_prox_user: ${{ secrets.prox_user }}

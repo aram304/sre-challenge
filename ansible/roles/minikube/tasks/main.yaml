@@ -45,6 +45,14 @@
     group: root
     mode: '0644'
 
+- name: Create scripts directory
+  ansible.builtin.file:
+    path: /home/{{ ansible_user }}/scripts
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
 - name: Place minikube script
   ansible.builtin.copy:
     src: files/scripts/minikube.sh
