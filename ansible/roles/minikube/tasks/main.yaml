@@ -93,7 +93,8 @@
   ansible.builtin.command:
     cmd: docker build -t sre-challenge:1.0 .
     chdir: /opt/sre-challenge
-  become: false
+  become: true
+  become_user: "{{ ansible_user }}"
   register: docker_build
 
 - name: Load SRE challenge image into Minikube
