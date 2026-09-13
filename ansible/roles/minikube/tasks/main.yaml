@@ -36,7 +36,7 @@
     owner: root
     group: root
     mode: '0755'
-
+  
 - name: Copy application files
   ansible.builtin.copy:
     src: app/
@@ -45,28 +45,32 @@
     group: root
     mode: '0644'
 
+- name: Place minikube script
+  ansible.builtin.copy:
+    src: files/scripts/minikube.sh
+    dest: /home/{{ ansible_user }}/scripts/minikube.sh
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+  notify: restart minikube service
 
-- name: Start Minikube cluster
-  ansible.builtin.command:
-    cmd: >-
-      minikube start
-      --cpus=4
-      --memory=8192
-      --disk-size=20g
-      --ports=80:80
-      --driver=docker
-      --addons=ingress,metrics-server,dashboard
-  register: start_result
-  changed_when: "'Starting' in start_result.stdout"
-  become: false
+- name: Make application run by systemd service
+  ansible.builtin.template:
+    src: files/scripts/minikube.service.j2
+    dest: /etc/systemd/system/minikube.service
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  notify: restart minikube service
 
-- name: check minikube status
-  ansible.builtin.command:
-    cmd: minikube status
-  register: minikube_status
-  changed_when: false
-  become: false
-
+- name: Enable and start the application service
+  ansible.builtin.systemd:
+    name: minikube.service
+    state: started
+    enabled: true
+    daemon_reload: yes
+  become: true
 
 - name: Copy dockerfile
   ansible.builtin.copy:
@@ -77,7 +81,6 @@
     mode: "0644"
   become: true
 
-
 - name: Build SRE challenge Docker image
   ansible.builtin.command:
     cmd: docker build -t sre-challenge:1.0 .
@@ -85,30 +88,11 @@
   become: false
   register: docker_build
 
-
 - name: Load SRE challenge image into Minikube
   ansible.builtin.command:
     cmd: minikube image load sre-challenge:1.0
   become: false
   register: minikube_image_load
-
-
-- name: Verify SRE challenge image in Minikube
-  ansible.builtin.command:
-    cmd: minikube image ls
-  become: false
-  register: minikube_images
-  changed_when: false
-
-
-- name: Show Minikube images
-  ansible.builtin.debug:
-    msg: "{{ minikube_images.stdout_lines }}"
-
-
-- name: Show status of Minikube
-  ansible.builtin.debug:
-    msg: "{{ minikube_status.stdout_lines }}"
 
 - name: copy kubernetes manifests
   ansible.builtin.copy:
@@ -118,16 +102,6 @@
     group: "{{ ansible_user }}"
     mode: '0644'
 
-- name: Apply Kubernetes manifests
-  ansible.builtin.command:
-    cmd: minikube kubectl -- apply -f /opt/sre-challenge/kubernetes/
-  become: false
-  register: kubectl_apply
-
-
-- name: Show kubectl apply output
-  ansible.builtin.debug:
-    msg: "{{ kubectl_apply.stdout_lines }}"
 
 - name: Create application directory
   ansible.builtin.file:
@@ -160,7 +134,7 @@
     mode: '0644'
   become: true
   notify: restart dashboard service
- 
+
 - name: Enable and start the application service
   ansible.builtin.systemd:
     name: dashboard.service
@@ -169,4 +143,24 @@
     daemon_reload: yes
   become: true
 
+- name: Check minikube service
+  ansible.builtin.command:
+    cmd: systemctl is-active minikube.service
+  register: minikube_service
+  changed_when: false
+  failed_when: false
 
+- name: Check dashboard service
+  ansible.builtin.command:
+    cmd: systemctl is-active dashboard.service
+  register: dashboard_service
+  changed_when: false
+  failed_when: false
+
+- name: Show service status
+  ansible.builtin.debug:
+    msg: "minikube.service is {{ 'running' if minikube_service.stdout == 'active' else 'not running' }}"
+
+- name: Show service status
+  ansible.builtin.debug:
+    msg: "dashboard.service is {{ 'running' if dashboard_service.stdout == 'active' else 'not running' }}"

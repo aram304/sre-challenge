@@ -3,3 +3,8 @@
   ansible.builtin.systemd:
     name: dashboard
     state: restarted
+
+- name: restart minikube service
+  ansible.builtin.systemd:
+    name: minikube
+    state: restarted

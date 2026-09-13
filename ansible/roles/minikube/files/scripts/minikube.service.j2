@@ -1,11 +1,10 @@
 [Unit]
-Description=Kubernetes dashboard
-After=minikube.service
+Description=Minikube service
 
 [Service]
 User={{ ansible_user }}
 Group={{ ansible_user }}
-ExecStart=/home/{{ ansible_user }}/scripts/dashboard.sh
+ExecStart=/home/{{ ansible_user }}/scripts/minikube.sh
 Restart=always
 RestartSec=5
 
