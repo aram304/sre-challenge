@@ -19,6 +19,7 @@ jobs:
       TF_VAR_ssh: ${{ secrets.sshpub_key }}
       TF_VAR_vlan: ${{ secrets.vlan }}
       TF_VAR_prefix: ${{ secrets.prefix }}
+      TF_TOKEN_app_terraform_io: ${{ secrets.hcp_token }}
 
 
 
