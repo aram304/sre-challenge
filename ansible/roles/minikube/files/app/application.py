@@ -3,10 +3,9 @@ import logging
 import bcrypt
 from flask import Flask, session, redirect, url_for, request, render_template, abort
 
-s = bcrypt.gensalt()
 
 app = Flask(__name__)
-app.secret_key = b"192b9bdd22ab9ed4d12e236c78afcb9a393ec15f71bbf5dc987d54727823bcbf"
+app.secret_key = b"192b9bdd22ab9ed4d12e236c78afcb9a393ec15f71bbf5dc987d54727823bcbf" # Dit moet nog secret worden
 app.logger.setLevel(logging.INFO)
 
 

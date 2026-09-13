@@ -1,0 +1,12 @@
+[Unit]
+Description=Kubernetes dashboard
+
+[Service]
+User={{ ansible_user }}
+Group={{ ansible_user }}
+ExecStart=/home/{{ ansible_user }}/scripts/dashboard.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

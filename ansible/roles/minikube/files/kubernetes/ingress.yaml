@@ -6,8 +6,7 @@ metadata:
 
 spec:
   rules:
-    - host: sre-challenge.local
-      http:
+    - http:
         paths:
           - path: /
             pathType: Prefix

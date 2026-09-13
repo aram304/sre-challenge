@@ -45,6 +45,7 @@
     group: root
     mode: '0644'
 
+
 - name: Start Minikube cluster
   ansible.builtin.command:
     cmd: >-
@@ -52,6 +53,7 @@
       --cpus=4
       --memory=8192
       --disk-size=20g
+      --ports=80:80
       --driver=docker
       --addons=ingress,metrics-server,dashboard
   register: start_result
@@ -116,15 +118,55 @@
     group: "{{ ansible_user }}"
     mode: '0644'
 
-- name : Apply Kubernetes manifests
+- name: Apply Kubernetes manifests
   ansible.builtin.command:
     cmd: minikube kubectl -- apply -f /opt/sre-challenge/kubernetes/
   become: false
   register: kubectl_apply
 
+
 - name: Show kubectl apply output
   ansible.builtin.debug:
     msg: "{{ kubectl_apply.stdout_lines }}"
 
+- name: Create application directory
+  ansible.builtin.file:
+    path: /home/{{ ansible_user }}/scripts
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+
+- name: Place dashboard script
+  ansible.builtin.copy:
+    src: files/scripts/dashboard.sh
+    dest: /home/{{ ansible_user }}/scripts/dashboard.sh
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+  notify: restart dashboard service
+
+- name: Enable and start the dashboard service
+  ansible.builtin.command:
+    cmd: minikube addons enable dashboard
+  become: false
+
+- name: Make application run by systemd service
+  ansible.builtin.template:
+    src: files/scripts/dashboard.service.j2
+    dest: /etc/systemd/system/dashboard.service
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  notify: restart dashboard service
+ 
+- name: Enable and start the application service
+  ansible.builtin.systemd:
+    name: dashboard.service
+    state: started
+    enabled: true
+    daemon_reload: yes
+  become: true
 
 
