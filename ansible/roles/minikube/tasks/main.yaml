@@ -110,6 +110,11 @@
     group: "{{ ansible_user }}"
     mode: '0644'
 
+- name: Apply Kubernetes manifests
+  ansible.builtin.command:
+    cmd: kubectl apply -f /opt/sre-challenge/kubernetes/
+  become: false
+  changed_when: false
 
 - name: Create application directory
   ansible.builtin.file:
