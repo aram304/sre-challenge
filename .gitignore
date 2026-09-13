@@ -2,3 +2,4 @@
 inventory.ini
 .terraform*
 terraform.*
+actions-runner/
