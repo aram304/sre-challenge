@@ -30,6 +30,10 @@ variable "vlan" {
     type      = number
 }
 
+variable "prefix" {
+    type      = string
+}
+
 
 
 

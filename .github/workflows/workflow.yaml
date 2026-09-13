@@ -1,0 +1,34 @@
+---
+name: Destroy and deploy infrastructure and configure hosts
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-en-deploy:
+    runs-on: self-hosted
+
+
+    steps:
+      - name: Haal repository op
+        uses: actions/checkout@v4
+
+      - name: Destory infrastructure
+        working-directory: ./terraform
+        run: terraform destroy -auto-approve
+
+      - name: Terraform initialiseren
+        working-directory: ./terraform
+        run: terraform init
+
+      - name: Terraform valideren
+        working-directory: ./terraform
+        run: terraform validate
+
+      - name: Terraform toepassen
+        working-directory: ./terraform
+        run: terraform apply -auto-approve
+      
+      - name: Voer Ansible-playbook uit
+        working-directory: ./ansible
+        run: ansible-playbook -i inventory.ini playbook.yaml
