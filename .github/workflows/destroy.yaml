@@ -1,0 +1,27 @@
+---
+name: Destroy infrastructure
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-en-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Haal repository op
+        uses: actions/checkout@v4
+      
+      - name: Terraform initialiseren
+        working-directory: ./terraform
+        run: terraform init
+
+      - name: Terraform valideren
+        working-directory: ./terraform
+        run: terraform validate
+
+      - name: Terraform vernietigen
+        working-directory: ./terraform
+        run: terraform destroy -auto-approve
+
+
