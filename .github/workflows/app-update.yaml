@@ -1,5 +1,5 @@
 ---
-name: Deploy infrastructure and configure hosts
+name: Update application
 
 on:
   push:
