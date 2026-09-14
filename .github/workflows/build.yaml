@@ -1,0 +1,40 @@
+---
+name: Deploy infrastructure and configure hosts
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-en-deploy:
+    runs-on: self-hosted
+
+    env:
+      TF_VAR_api_proxmox: ${{ secrets.proxmox_api }}
+      TF_VAR_prox_user: ${{ secrets.prox_user }}
+      TF_VAR_prox_pass: ${{ secrets.prox_pass }}
+      TF_VAR_ubuntu_user: ${{ secrets.ubuntu_user }}
+      TF_VAR_ubuntu_pass: ${{ secrets.ubuntu_pass }}
+      TF_VAR_ssh: ${{ secrets.sshpub_key }}
+      TF_VAR_vlan: ${{ secrets.vlan }}
+      TF_VAR_prefix: ${{ secrets.prefix }}
+      TF_TOKEN_app_terraform_io: ${{ secrets.hcp_token }}    
+
+    steps:
+      - name: Haal repository op
+        uses: actions/checkout@v4
+      
+      - name: Terraform initialiseren
+        working-directory: ./terraform
+        run: terraform init
+
+      - name: Terraform valideren
+        working-directory: ./terraform
+        run: terraform validate
+
+      - name: Terraform toepassen
+        working-directory: ./terraform
+        run: terraform apply -auto-approve
+      
+      - name: Voer Ansible-playbook uit
+        working-directory: ./ansible
+        run: ansible-playbook -i inventory.ini playbook.yaml

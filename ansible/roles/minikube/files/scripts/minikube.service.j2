@@ -1,5 +1,6 @@
 [Unit]
 Description=Minikube service
+after=network.target
 
 [Service]
 User={{ ansible_user }}
