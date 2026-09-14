@@ -1,0 +1,19 @@
+---
+name: Deploy infrastructure and configure hosts
+
+on:
+  push:
+    branches:
+      - feature/app
+
+jobs:
+  build-en-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Haal repository op
+        uses: actions/checkout@v4
+           
+      - name: Voer Ansible-playbook uit
+        working-directory: ./ansible
+        run: ansible-playbook -i inventory.ini update.app.yaml -v
