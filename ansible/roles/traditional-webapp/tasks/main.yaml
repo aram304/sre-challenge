@@ -20,7 +20,7 @@
 
 - name: Copy application files
   ansible.builtin.copy:
-    src: app/
+    src: files/app/
     dest: /opt/sre-challenge/
     owner: root
     group: root
@@ -34,7 +34,7 @@
 
 - name: Make application run by systemd service
   ansible.builtin.copy:
-    src: sre-challenge.service
+    src: files/scripts/sre-challenge.service.j2
     dest: /etc/systemd/system/sre-challenge.service
     owner: root
     group: root

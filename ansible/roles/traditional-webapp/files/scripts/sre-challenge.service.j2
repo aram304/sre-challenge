@@ -2,7 +2,10 @@
 Description=sre-challenge-app
 After=network.target
 
+
 [Service]
+User={{ ansible_user }}
+Group={{ ansible_user }}
 ExecStart=/opt/sre-challenge/venv/bin/python /opt/sre-challenge/application.py
 Restart=always
 

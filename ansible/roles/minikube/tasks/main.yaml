@@ -80,6 +80,10 @@
     daemon_reload: yes
   become: true
 
+- name: Pause for 3 minutes to allow minikube to start
+  ansible.builtin.pause:
+    minutes: 3
+
 - name: Copy dockerfile
   ansible.builtin.copy:
     src: docker/dockerfile
@@ -139,7 +143,7 @@
     cmd: minikube addons enable dashboard
   become: false
 
-- name: Make application run by systemd service
+- name: Place dashboard service
   ansible.builtin.template:
     src: files/scripts/dashboard.service.j2
     dest: /etc/systemd/system/dashboard.service
@@ -149,7 +153,7 @@
   become: true
   notify: restart dashboard service
 
-- name: Enable and start the application service
+- name: Enable and start the dashboard service
   ansible.builtin.systemd:
     name: dashboard.service
     state: started
