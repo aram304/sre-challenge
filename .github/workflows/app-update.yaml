@@ -16,4 +16,4 @@ jobs:
            
       - name: Voer Ansible-playbook uit
         working-directory: ./ansible
-        run: ansible-playbook -i inventory.ini update.app.yaml -v
+        run: ansible-playbook -i inventory.ini update-app.yaml -v
