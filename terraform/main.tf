@@ -133,7 +133,5 @@ resource "local_file" "ansible_inventory" {
     [minikube]
     minikube-webserver-${local.minikube_vmid} ansible_host=${local.minikube_ip}
 
-    [all:vars]
-    ansible_user=${var.ubuntu_user}
 EOT 
 }
