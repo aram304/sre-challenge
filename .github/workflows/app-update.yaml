@@ -9,9 +9,7 @@ on:
 jobs:
   build-en-deploy:
     runs-on: self-hosted
-
     
-
     steps:
       - name: Haal repository op
         uses: actions/checkout@v4
