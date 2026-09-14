@@ -1,0 +1,23 @@
+---
+- name: Update application on Minikube
+  hosts: minikube
+  become: false
+  gather_facts: false
+
+  tasks:
+    - name: Update Minikube application
+      ansible.builtin.include_role:
+        name: minikube
+        tasks_from: update-task.yaml
+
+
+- name: Update application on traditional host
+  hosts: traditional
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Update traditional application
+      ansible.builtin.include_role:
+        name: traditional-webapp
+        tasks_from: update-task.yaml

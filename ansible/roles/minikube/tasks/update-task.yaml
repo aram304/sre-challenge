@@ -1,0 +1,42 @@
+
+    - name: Copy application files
+      ansible.builtin.copy:
+        src: files/app/
+        dest: /opt/sre-challenge/app
+        owner: root
+        group: root
+        mode: '0644'
+      become: true
+
+    - name: Copy dockerfile
+      ansible.builtin.copy:
+        src: files/docker/dockerfile
+        dest: /opt/sre-challenge/Dockerfile
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0644"
+      
+    - name: Build SRE challenge Docker image
+      ansible.builtin.command:
+        cmd: docker build -t sre-challenge:1.0 .
+        chdir: /opt/sre-challenge
+      register: docker_build
+
+    - name: Load SRE challenge image into Minikube
+      ansible.builtin.command:
+        cmd: minikube image load sre-challenge:1.0
+      become: false
+      register: minikube_image_load
+   
+    - name: Update deployment image 
+      ansible.builtin.command:
+        cmd: minikube kubectl -- set image deploy -l app=sre-challenge sre-challenge=sre-challenge:1.0
+      become: true
+      become_user: "{{ ansible_user }}"
+    
+
+    - name: Reload deployment
+      ansible.builtin.command:
+        cmd: minikube kubectl -- rollout restart deployment -l app=sre-challenge
+      become: true
+      become_user: "{{ ansible_user }}"

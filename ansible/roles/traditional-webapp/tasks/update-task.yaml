@@ -1,0 +1,9 @@
+    - name: Copy application files
+      ansible.builtin.copy:
+        src: files/app/
+        dest: /opt/sre-challenge/
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart sre-challenge service
+
