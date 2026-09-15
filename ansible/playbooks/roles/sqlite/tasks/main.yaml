@@ -26,6 +26,6 @@
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     mode: '0770'
-  become: false
+  become: true
   when: not database_file.stat.exists
 
