@@ -43,6 +43,6 @@ jobs:
         run: |
           echo "$VAULT_PASS" > /tmp/vault_pass.txt && \
           chmod 600 /tmp/vault_pass.txt && \
-          ansible-playbook -i inventory.ini update-app.yaml --vault-password-file /tmp/vault_pass.txt && \
+          ansible-playbook -i inventories/inventory.ini playbooks/playbook.yaml --vault-password-file /tmp/vault_pass.txt && \
           rm -f /tmp/vault_pass.txt
 
