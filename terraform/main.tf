@@ -22,7 +22,7 @@ resource "proxmox_virtual_environment_vm" "traditional" {
   network_device {
     bridge    = "vmbr1"
     model     = "virtio"
-    vlan_id   = var.vlan
+    vlan_id   = 20
     firewall  = false
   }
 
@@ -39,9 +39,9 @@ resource "proxmox_virtual_environment_vm" "traditional" {
   user_account{
     username    = "${var.ubuntu_user}"
     password    = "${var.ubuntu_pass}"
-    keys        = [
-                  file("/home/ara/.ssh/id_ed25519.pub")
-    ]
+    keys        = "${var.ssh}
+                  
+    
   }
 
   ip_config {
@@ -83,7 +83,7 @@ resource "proxmox_virtual_environment_vm" "minikube" {
   network_device {
     bridge    = "vmbr1"
     model     = "virtio"
-    vlan_id   = var.vlan
+    vlan_id   = 20
     firewall  = false
   }
 
@@ -99,9 +99,7 @@ resource "proxmox_virtual_environment_vm" "minikube" {
   user_account{
     username    = "${var.ubuntu_user}"
     password    = "${var.ubuntu_pass}"
-    keys        = [
-                  file("/home/ara/.ssh/id_ed25519.pub")
-    ]
+    keys        = "${var.ssh}
   }
 
   ip_config {

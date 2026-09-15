@@ -26,13 +26,6 @@ variable "ssh" {
     type      = string 
 } 
 
-variable "vlan" {
-    type      = number
-}
-
-variable "prefix" {
-    type      = string
-}
 
 
 
