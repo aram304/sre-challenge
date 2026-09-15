@@ -24,6 +24,7 @@ variable "ubuntu_pass" {
 
 variable "ssh" {
     type      = string 
+    sensitive = true
 } 
 
 

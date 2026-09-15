@@ -39,7 +39,7 @@ resource "proxmox_virtual_environment_vm" "traditional" {
   user_account{
     username    = "${var.ubuntu_user}"
     password    = "${var.ubuntu_pass}"
-    keys        = "${var.ssh}
+    keys        = [var.ssh]
                   
     
   }
@@ -99,7 +99,7 @@ resource "proxmox_virtual_environment_vm" "minikube" {
   user_account{
     username    = "${var.ubuntu_user}"
     password    = "${var.ubuntu_pass}"
-    keys        = "${var.ssh}
+    keys        = [var.ssh]
   }
 
   ip_config {
