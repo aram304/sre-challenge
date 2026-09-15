@@ -10,6 +10,7 @@ jobs:
   build-en-deploy:
     runs-on: self-hosted
     
+    
     steps:
       - name: Haal repository op
         uses: actions/checkout@v4
@@ -21,7 +22,7 @@ jobs:
         run: |
           echo "$VAULT_PASS" > /tmp/vault_pass.txt && \
           chmod 600 /tmp/vault_pass.txt && \
-          ansible-playbook -i inventory.ini update-app.yaml --vault-password-file /tmp/vault_pass.txt && \
+          ansible-playbook -i ./ansible/inventories/inventory.ini ./ansible/playbooks/update-app.yaml --vault-password-file /tmp/vault_pass.txt && \
           rm -f /tmp/vault_pass.txt
 
 

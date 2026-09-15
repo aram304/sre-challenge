@@ -17,24 +17,32 @@ jobs:
       TF_VAR_ssh: ${{ secrets.sshpub_key }}
       TF_VAR_vlan: ${{ secrets.vlan }}
       TF_VAR_prefix: ${{ secrets.prefix }}
-      TF_TOKEN_app_terraform_io: ${{ secrets.hcp_token }}    
+      TF_TOKEN_app_terraform_io: ${{ secrets.hcp_token }}
+      K8S_APP_SCECRET: ${{ secrets.app_secret }}
+      VAULT_PASS: ${{ secrets.ansible_vault_password }}
 
     steps:
-      - name: Haal repository op
+      - name: Get repository 
         uses: actions/checkout@v4
       
       - name: Terraform initialiseren
         working-directory: ./terraform
         run: terraform init
 
-      - name: Terraform valideren
+      - name: Terraform validate
         working-directory: ./terraform
         run: terraform validate
 
-      - name: Terraform toepassen
+      - name: Terraform apply
         working-directory: ./terraform
         run: terraform apply -auto-approve
+
       
-      - name: Voer Ansible-playbook uit
+      - name: Run playbook
         working-directory: ./ansible
-        run: ansible-playbook -i inventory.ini playbook.yaml
+        run: |
+          echo "$VAULT_PASS" > /tmp/vault_pass.txt && \
+          chmod 600 /tmp/vault_pass.txt && \
+          ansible-playbook -i inventory.ini update-app.yaml --vault-password-file /tmp/vault_pass.txt && \
+          rm -f /tmp/vault_pass.txt
+
