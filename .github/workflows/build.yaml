@@ -33,18 +33,15 @@ jobs:
         working-directory: ./terraform
         run: terraform validate
 
-      - name: Run playbook
-        working-directory: ./ansible
-        run: |
-           cp ~/sre-challenge/ansible/inventory.ini \
-           "$GITHUB_WORKSPACE/ansible/inventory.ini"
-
-
       - name: Terraform apply
         working-directory: ./terraform
         run: terraform apply -auto-approve
 
-      
+      - name: Add new inventory to git workspace
+        working-directory: ./ansible
+        run: |
+           cp inventories/inventory.ini "$GITHUB_WORKSPACE/ansible/inventory.ini"
+
       - name: Run playbook
         working-directory: ./ansible
         run: |
