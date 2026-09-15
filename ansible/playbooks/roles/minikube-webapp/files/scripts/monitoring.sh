@@ -1,6 +1,6 @@
 #!/bin/bash
 
-URL="http://localhost:5000/health"
+URL="http://localhost:80/health"
 MAIL_TO=aram.airapetian@gmail.com
 
 
