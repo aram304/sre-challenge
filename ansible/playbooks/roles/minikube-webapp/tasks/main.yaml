@@ -99,7 +99,7 @@
 - name: Pause for 3 minutes to allow minikube to start
   ansible.builtin.pause:
     minutes: 3
-  when: "'Configured' not in minikube_status.stdout"
+
 
 - name: Copy dockerfile
   ansible.builtin.copy:
@@ -157,6 +157,10 @@
     cmd: minikube kubectl -- apply -f /opt/sre-challenge/kubernetes/
   become: false
   changed_when: false
+
+- name: Pause for 3 minutes to allow minikube to start
+  ansible.builtin.pause:
+    minutes: 1
 
 - name: Register pod name
   ansible.builtin.shell: |
