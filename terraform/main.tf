@@ -122,7 +122,7 @@ resource "proxmox_virtual_environment_vm" "minikube" {
 # Generate an Ansible inventory file containing the provisioned VM connection details.
 resource "local_file" "ansible_inventory" {
 
-  filename = "${path.module}/../ansible/inventory.ini"
+  filename = "${path.module}/../ansible/inventories/inventory.ini"
 
   content =  <<-EOT
     [traditional]
