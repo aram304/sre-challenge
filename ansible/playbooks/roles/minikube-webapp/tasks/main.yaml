@@ -142,6 +142,7 @@
   become_user: "{{ ansible_user }}"
   register: docker_build
   when: "'app-secret' not in secret_check.stdout"
+  no_log: true
         
 - name: copy kubernetes manifests
   ansible.builtin.copy:
@@ -156,6 +157,19 @@
     cmd: minikube kubectl -- apply -f /opt/sre-challenge/kubernetes/
   become: false
   changed_when: false
+
+- name: Register pod name
+  ansible.builtin.shell: |
+    minikube kubectl -- get pods | tail -n 1 | awk '{print $1}'
+  register: pod_name
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Place database on pod
+  ansible.builtin.command:
+    cmd: minikube kubectl -- cp /var/lib/sre-challenge/database.db {{ pod_name.stdout }}:/var/lib/sre-challenge/database.db
+  become: true
+  become_user: "{{ ansible_user }}"
 
 - name: Place dashboard script
   ansible.builtin.copy:

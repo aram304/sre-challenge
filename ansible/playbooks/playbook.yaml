@@ -40,7 +40,7 @@
   gather_facts: false
 
   roles:
-    - minikube
+    - minikube-webapp
 
 
   
