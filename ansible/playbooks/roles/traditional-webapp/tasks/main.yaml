@@ -1,0 +1,107 @@
+---
+- name: Install Python venv
+  ansible.builtin.apt:
+    name: python3-venv
+    state: present
+    update_cache: true
+
+- name: Create Python virtual environment
+  ansible.builtin.command:
+    cmd: python3 -m venv /opt/sre-challenge/venv
+    creates: /opt/sre-challenge/venv/bin/python
+
+- name: Create application directory
+  ansible.builtin.file:
+    path: /opt/sre-challenge
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy application files
+  ansible.builtin.copy:
+    src: files/app/
+    dest: /opt/sre-challenge/
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart sre-challenge service
+
+- name: Install Python requirements
+  ansible.builtin.pip:
+    requirements: /opt/sre-challenge/requirements.txt
+    virtualenv: /opt/sre-challenge/venv
+
+- name: Create app secret directory
+  ansible.builtin.file:
+    path: /opt/sre-challenge/secrets
+    state: directory
+    owner: "{{ ansible_user }}" 
+    group: "{{ ansible_user }}"
+    mode: '0750'
+
+- name: Create app secret directory
+  ansible.builtin.file:
+    path: /opt/sre-challenge/scripts
+    state: directory
+    owner: "{{ ansible_user }}" 
+    group: "{{ ansible_user }}"
+    mode: '0750'
+
+- name: Place app secret on host
+  ansible.builtin.copy:
+    content: "'{{ app_secret }}'"
+    dest: /opt/sre-challenge/secrets/app-secret.txt
+    owner: "{{ ansible_user }}"           
+    group: "{{ ansible_user }}"         
+    mode: '0640'          
+  no_log: true    
+
+- name: Make application run by systemd service
+  ansible.builtin.template:
+    src: files/scripts/sre-challenge.service.j2
+    dest: /etc/systemd/system/sre-challenge.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart sre-challenge service
+
+- name: Check SRE Challenge service
+  ansible.builtin.systemd_service:
+    name: sre-challenge
+    state: started
+  register: sre_service
+  changed_when: false
+
+- name: Enable and start the application service
+  ansible.builtin.systemd:
+    name: sre-challenge
+    state: started
+    enabled: true
+    daemon_reload: yes
+  when: sre_service.status.ActiveState != "active"
+
+
+- name: Copy monitoring script
+  ansible.builtin.copy:
+    src: files/scripts/monitoring.sh
+    dest: /opt/sre-challenge/scripts/monitoring.sh
+    owner: "{{ ansible_user }}"           
+    group: "{{ ansible_user }}"         
+    mode: '0740'          
+
+- name: Create health check cronjob
+  ansible.builtin.cron:
+    name: "Health check webserver"
+    minute: "*/5"
+    job: "/opt/sre-challenge/scripts/monitoring.sh"
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Show service status
+  ansible.builtin.debug:
+    msg: "sre-challenge.service is {{ 'running' if sre_service.status.SubState == 'running' else 'not running' }}"
+
+
+
+  

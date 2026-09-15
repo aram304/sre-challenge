@@ -33,6 +33,14 @@
         cmd: minikube kubectl -- set image deploy -l app=sre-challenge sre-challenge=sre-challenge:1.0
       become: true
       become_user: "{{ ansible_user }}"
+
+    - name: copy kubernetes manifests
+      ansible.builtin.copy:
+        src: kubernetes/
+        dest: /opt/sre-challenge/kubernetes/
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0644'
     
 
     - name: Reload deployment

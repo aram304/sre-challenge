@@ -10,6 +10,7 @@
     state: present
     update_cache: true
 
+
 - name: Create SQLite database directory
   ansible.builtin.file:
     path: /var/lib/sre-challenge
@@ -27,3 +28,4 @@
     mode: '0770'
   become: false
   when: not database_file.stat.exists
+

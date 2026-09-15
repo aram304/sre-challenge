@@ -5,7 +5,7 @@ after=network.target
 [Service]
 User={{ ansible_user }}
 Group={{ ansible_user }}
-ExecStart=/home/{{ ansible_user }}/scripts/minikube.sh
+ExecStart=/opt/sre-challenge/scripts/minikube.sh
 Restart=always
 RestartSec=5
 

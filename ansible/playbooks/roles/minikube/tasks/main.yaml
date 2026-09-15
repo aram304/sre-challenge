@@ -1,4 +1,13 @@
 ---
+- name: Check if minikube is running
+  ansible.builtin.shell: |
+    minikube status | grep config
+  register: minikube_status
+  become: true
+  become_user: "{{ ansible_user }}"
+  failed_when: false
+  changed_when: false
+
 - name: Install Docker
   ansible.builtin.package:
     name: docker.io
@@ -9,22 +18,26 @@
     url: "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
     dest: /usr/local/bin/minikube
     mode: '0755'
+  when: "'Configured' not in minikube_status.stdout"
 
 - name: Set default driver to Docker
   ansible.builtin.command:
     cmd: minikube config set driver docker
   changed_when: true
+  when: "'Configured' not in minikube_status.stdout"
 
 - name: Ensure Docker group exists
   ansible.builtin.group:
     name: docker
     state: present
+  when: "'Configured' not in minikube_status.stdout"
 
 - name: Add Ansible user to Docker group
   ansible.builtin.user:
     name: "{{ ansible_user }}"
     groups: docker
     append: true
+  when: "'Configured' not in minikube_status.stdout"
 
 - name: Reset SSH connection to apply group membership
   ansible.builtin.meta: reset_connection
@@ -47,20 +60,21 @@
 
 - name: Create scripts directory
   ansible.builtin.file:
-    path: /home/{{ ansible_user }}/scripts
+    path: /opt/sre-challenge/scripts
     state: directory
-    owner: root
-    group: root
+    owner: "{{ ansible_user}}"
+    group: "{{ ansible_user}}"
     mode: '0755'
 
 - name: Place minikube script
   ansible.builtin.copy:
     src: files/scripts/minikube.sh
-    dest: /home/{{ ansible_user }}/scripts/minikube.sh
+    dest: /opt/sre-challenge/scripts/minikube.sh
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     mode: '0755'
   notify: restart minikube service
+  when: "'Configured' not in minikube_status.stdout"
 
 - name: Make application run by systemd service
   ansible.builtin.template:
@@ -71,6 +85,7 @@
     mode: '0644'
   become: true
   notify: restart minikube service
+  when: "'Configured' not in minikube_status.stdout"
 
 - name: Enable and start the application service
   ansible.builtin.systemd:
@@ -79,10 +94,12 @@
     enabled: true
     daemon_reload: yes
   become: true
+  when: "'Configured' not in minikube_status.stdout"
 
 - name: Pause for 3 minutes to allow minikube to start
   ansible.builtin.pause:
     minutes: 3
+  when: "'Configured' not in minikube_status.stdout"
 
 - name: Copy dockerfile
   ansible.builtin.copy:
@@ -100,13 +117,32 @@
   become: true
   become_user: "{{ ansible_user }}"
   register: docker_build
+  changed_when: false
 
 - name: Load SRE challenge image into Minikube
   ansible.builtin.command:
     cmd: minikube image load sre-challenge:1.0
   become: false
   register: minikube_image_load
+  changed_when: false
 
+- name: Check if app-secret exists
+  ansible.builtin.shell : |
+    minikube kubectl -- get secrets | grep app-secret
+  register: secret_check
+  become: true
+  become_user: "{{ ansible_user }}"
+  changed_when: false
+  failed_when: false
+
+- name: Create secret
+  ansible.builtin.command:
+    cmd: minikube kubectl -- create secret generic app-secret  --from-literal=app_secret="{{ app_secret }}"
+  become: true
+  become_user: "{{ ansible_user }}"
+  register: docker_build
+  when: "'app-secret' not in secret_check.stdout"
+        
 - name: copy kubernetes manifests
   ansible.builtin.copy:
     src: kubernetes/
@@ -121,27 +157,21 @@
   become: false
   changed_when: false
 
-- name: Create application directory
-  ansible.builtin.file:
-    path: /home/{{ ansible_user }}/scripts
-    state: directory
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
-    mode: '0755'
-
 - name: Place dashboard script
   ansible.builtin.copy:
     src: files/scripts/dashboard.sh
-    dest: /home/{{ ansible_user }}/scripts/dashboard.sh
+    dest: /opt/sre-challenge/scripts/dashboard.sh
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     mode: '0755'
   notify: restart dashboard service
+  changed_when: false
 
 - name: Enable and start the dashboard service
   ansible.builtin.command:
     cmd: minikube addons enable dashboard
   become: false
+  changed_when: false
 
 - name: Place dashboard service
   ansible.builtin.template:
@@ -152,6 +182,7 @@
     mode: '0644'
   become: true
   notify: restart dashboard service
+  changed_when: false
 
 - name: Enable and start the dashboard service
   ansible.builtin.systemd:
@@ -174,6 +205,22 @@
   register: dashboard_service
   changed_when: false
   failed_when: false
+
+- name: Copy monitoring script
+  ansible.builtin.copy:
+    src: files/scripts/monitoring.sh
+    dest: /opt/sre-challenge/scripts/monitoring.sh
+    owner: "{{ ansible_user }}"           
+    group: "{{ ansible_user }}"         
+    mode: '0740'          
+
+- name: Create health check cronjob
+  ansible.builtin.cron:
+    name: "Health check webserver"
+    minute: "*/5"
+    job: "/opt/sre-challenge/scripts/monitoring.sh"
+  become: true
+  become_user: "{{ ansible_user }}"
 
 - name: Show service status
   ansible.builtin.debug:
