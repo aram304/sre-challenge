@@ -1,0 +1,6 @@
+api_proxmox  = "api_proxmox"
+prox_user    = "prox_user"
+prox_pass    = "prox_user
+ubuntu_user  = "ubuntu_user
+ubuntu_pass  = "ubuntu_pass
+ssh          = "ssh"
