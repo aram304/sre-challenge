@@ -2,3 +2,4 @@
 .terraform*
 terraform.*
 actions-runner/
+!terraform.tfvars.example
