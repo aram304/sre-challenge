@@ -101,7 +101,6 @@
     minutes: 3
   when: "'Configured' not in minikube_status.stdout"
 
-
 - name: Copy dockerfile
   ansible.builtin.copy:
     src: docker/dockerfile
@@ -155,26 +154,38 @@
 
 - name: Apply Kubernetes manifests
   ansible.builtin.command:
-    cmd: minikube kubectl -- apply -f /opt/sre-challenge/kubernetes/
+    cmd: minikube kubectl -- apply -f /opt/sre-challenge/kubernetes/pv.yaml
   become: false
   changed_when: false
 
-- name: Pause for 1 minutes to allow the pod to start
-  ansible.builtin.pause:
-    minutes: 1
-
-- name: Register pod name
-  ansible.builtin.shell: |
-    minikube kubectl -- get pods | tail -n 1 | awk '{print $1}'
-  register: pod_name
-  become: true
-  become_user: "{{ ansible_user }}"
-
-- name: Place database on pod
+- name: Apply Kubernetes manifests
   ansible.builtin.command:
-    cmd: minikube kubectl -- cp /var/lib/sre-challenge/database.db {{ pod_name.stdout }}:/var/lib/sre-challenge/database.db
-  become: true
-  become_user: "{{ ansible_user }}"
+    cmd: minikube kubectl -- apply -f /opt/sre-challenge/kubernetes/pvc.yaml
+  become: false
+  changed_when: false
+
+- name: Pause for 30 seconds to allow the persistent volume claim to bound
+  ansible.builtin.pause:
+    seconds: 30
+
+- name: Apply Kubernetes manifests
+  ansible.builtin.command:
+    cmd: minikube kubectl -- apply -f /opt/sre-challenge/kubernetes/deployment.yaml
+  become: false
+  changed_when: false
+
+- name: Apply Kubernetes manifests
+  ansible.builtin.command:
+    cmd: minikube kubectl -- apply -f /opt/sre-challenge/kubernetes/services.yaml
+  become: false
+  changed_when: false
+
+- name: Apply Kubernetes manifests
+  ansible.builtin.command:
+    cmd: minikube kubectl -- apply -f /opt/sre-challenge/kubernetes/ingress.yaml
+  become: false
+  changed_when: false
+
 
 - name: Place dashboard script
   ansible.builtin.copy:
