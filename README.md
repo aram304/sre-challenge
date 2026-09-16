@@ -104,6 +104,57 @@ ansible-playbook -i inventories/inventory.ini playbooks/playbook.yaml --ask-vaul
 
 Prerequisites include access to Proxmox, a prepared Ubuntu Cloud-init template, a configured HCP Terraform workspace, deployment credentials and SSH connectivity.
 
+## Repository Structure
+
+The repository is organized into separate directories for CI/CD, infrastructure provisioning and configuration management. Ansible contains the deployment configurations for both the traditional VM and Kubernetes environments.
+
+### Directory Tree
+
+```text
+sre-challenge/
+│
+├── .github/
+│   └── workflows/
+│
+├── ansible/
+│   ├── inventories/
+│   └── playbooks/
+│       ├── group_vars/
+│       │   └── all/
+│       └── roles/
+│           ├── minikube-webapp/
+│           │   ├── files/
+│           │   │   ├── app/
+│           │   │   │   └── templates/
+│           │   │   ├── docker/
+│           │   │   ├── kubernetes/
+│           │   │   └── scripts/
+│           │   ├── handlers/
+│           │   └── tasks/
+│           ├── sqlite/
+│           │   ├── files/
+│           │   └── tasks/
+│           └── traditional-webapp/
+│               ├── files/
+│               │   ├── app/
+│               │   │   └── templates/
+│               │   └── scripts/
+│               ├── handlers/
+│               └── tasks/
+│
+└── terraform/
+```
+
+### Directory Overview
+
+* **.github:** Contains GitHub Actions workflows for deployment automation.
+* **ansible:** Contains inventories, configuration variables and playbooks used to configure and deploy both environments.
+* **minikube-webapp:** Configures Minikube and deploys the containerized application using Kubernetes manifests.
+* **sqlite:** Configures the SQLite database
+* **traditional-webapp:** Configures and deploys the Flask application and its required services on the traditional VM.
+* **terraform:** Contains the infrastructure configuration used to provision virtual machines on Proxmox.
+
+
 ## Conclusion
 
 This project demonstrates how Infrastructure as Code, configuration management and CI/CD can work together to automate the deployment and management of applications across traditional and Kubernetes environments.
