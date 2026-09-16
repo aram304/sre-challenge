@@ -98,7 +98,7 @@ terraform validate
 terraform plan
 terraform apply
 
-cd ../ansible
+cd ansible
 ansible-playbook -i inventories/inventory.ini playbooks/playbook.yaml --ask-vault-pass
 ```
 
