@@ -7,7 +7,7 @@
   tasks:
     - name: Update Minikube application
       ansible.builtin.include_role:
-        name: minikube
+        name: minikube-webapp
         tasks_from: update-task.yaml
 
 
