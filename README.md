@@ -95,7 +95,6 @@ Alternatively, Terraform and Ansible can be executed manually after configuring 
 cd terraform
 terraform init
 terraform validate
-terraform plan
 terraform apply
 
 cd ansible
